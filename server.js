@@ -14,7 +14,7 @@ var apiKey='22be462e6d3de1dbab03d1ca50847b5a';
 
 // http://api.themoviedb.org/3/movie/top_rated?api_key=22be462e6d3de1dbab03d1ca50847b5a
 
-Rx.Observable
+var movies$ = Rx.Observable
   .range(1, 20)
   .flatMap(page => 
     fetch(`http://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=${page}`)
@@ -23,8 +23,28 @@ Rx.Observable
   .map(json => json.results)
   .flatMap(e => e)
   .filter(m => !m.adult)
-  .filter(m => m.original_language === 'en')
-  .subscribe(m => movies.push(m))
+  .filter(m => m.original_language === 'en');
+
+var genres$ = Rx.Observable
+  .just()
+  .flatMap(() => 
+    fetch(`http://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}`)
+    .then(rsp => rsp.json())
+  )
+  .map(json => json.genres);
+
+
+movies$  
+  .combineLatest(
+    genres$,
+    (movie, genres) => {
+      
+      movie.genre = movie.genre_ids.map(id => genres.filter(g => g.id === id).pop().name)
+      delete movie.genre_ids;
+
+      return movie;
+    })
+  .subscribe(m => movies.push(m));
   
 // Rx.Observable
 //   .fromArray([
