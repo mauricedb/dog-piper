@@ -1,11 +1,62 @@
 // server.js
 // where your node app starts
 
+
+var movies = [];
+
 // init project
 var express = require('express');
 var app = express();
 var Rx = require('rx');
 var fetch = require('isomorphic-fetch');
+
+var apiKey='22be462e6d3de1dbab03d1ca50847b5a';
+
+// http://api.themoviedb.org/3/movie/top_rated?api_key=22be462e6d3de1dbab03d1ca50847b5a
+
+Rx.Observable
+  .range(1, 20)
+  .flatMap(page => 
+    fetch(`http://api.themoviedb.org/3/movie/top_rated?api_key=${apiKey}&page=${page}`)
+    .then(rsp => rsp.json())
+  )
+  .map(json => json.results)
+  .flatMap(e => e)
+  .filter(m => !m.adult)
+  .filter(m => m.original_language === 'en')
+  .subscribe(m => movies.push(m))
+  
+// Rx.Observable
+//   .fromArray([
+//     'tt0093058',
+//     'tt0076759',
+//     'tt2488496',
+//     'tt0266697',
+//     'tt0378194',
+//     '',
+//     '',
+//     '',
+//     '',
+//   ])
+//   .filter(id => !!id)
+//   .flatMap(id => 
+//     fetch(`http://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}`)
+//     // fetch(`http://www.omdbapi.com/?i=${id}&plot=full&r=json`)
+//       .then(rsp => rsp.json())
+//   )
+//   .map(m => {
+    
+//     // m.Actors = m.Actors.split(', ')
+//     // m.Genre = m.Genre.split(', ')
+
+//     m.genres = m.genres.map(g => g.name)
+//     delete m.spoken_languages
+//     delete m.production_countries
+//     delete m.production_companies
+    
+//     return m
+//   })
+//   .subscribe(m => movies.push(m))
 
 // we've started you off with Express, 
 // but feel free to use whatever libs or frameworks you'd like through `package.json`.
@@ -30,40 +81,41 @@ app.post("/dreams", function (request, response) {
 
 
 app.get("/movies", function (request, response) {
-  var movies = []
-  Rx.Observable
-    .range(0, 25)
-    // .filter(page => !(page % 7))
-    .flatMap(page => 
-      fetch('http://rawstack.azurewebsites.net/api/movies?page=' + page)
-        .then(resp => resp.json())
-    )
-    .flatMap(movie => movie)
-    .map(movie => ({
-      id: movie.id,
-      title: movie.title,
-      directors: movie.abridgedDirectors,
-      description: movie.criticsConsensus,
-      posters: movie.posters
-    }))
-    .subscribe(e => {
+   response.json(movies);
+  // var movies = []
+  // Rx.Observable
+  //   .range(0, 25)
+  //   // .filter(page => !(page % 7))
+  //   .flatMap(page => 
+  //     fetch('http://rawstack.azurewebsites.net/api/movies?page=' + page)
+  //       .then(resp => resp.json())
+  //   )
+  //   .flatMap(movie => movie)
+  //   .map(movie => ({
+  //     id: movie.id,
+  //     title: movie.title,
+  //     directors: movie.abridgedDirectors,
+  //     description: movie.criticsConsensus,
+  //     posters: movie.posters
+  //   }))
+  //   .subscribe(e => {
 
-      movies.push(e)
-    }, 
-    err => console.error(err),
-    () => {
-      movies.sort((a, b) => {
-        if (a.title < b.title) {
-          return -1;
-        } else if (a.title > b.title) {
-          return 1;
-        } else {
-          return 0;
-        }
-      })
-      response.send(movies);
+  //     movies.push(e)
+  //   }, 
+  //   err => console.error(err),
+  //   () => {
+  //     movies.sort((a, b) => {
+  //       if (a.title < b.title) {
+  //         return -1;
+  //       } else if (a.title > b.title) {
+  //         return 1;
+  //       } else {
+  //         return 0;
+  //       }
+  //     })
+  //     response.send(movies);
       
-    });
+  //   });
     
   // response.send([{a:2}]);
 });
