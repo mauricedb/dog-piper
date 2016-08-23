@@ -2,6 +2,7 @@
 // where your node app starts
 
 
+
 var movies = [];
 
 // init project
@@ -11,8 +12,6 @@ var Rx = require('rx');
 var fetch = require('isomorphic-fetch');
 
 var apiKey='22be462e6d3de1dbab03d1ca50847b5a';
-
-// http://api.themoviedb.org/3/movie/top_rated?api_key=22be462e6d3de1dbab03d1ca50847b5a
 
 var movies$ = Rx.Observable
   .range(1, 20)
